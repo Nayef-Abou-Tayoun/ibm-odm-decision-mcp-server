@@ -232,8 +232,8 @@ def parse_arguments():
     # arguments useful when running the MCP server in remote mode
     parser.add_argument("--transport",                                  type=str, default=os.getenv("TRANSPORT", "stdio"), choices=["stdio", "streamable-http", "sse"], help="Means of communication of the Decision MCP server: local (stdio) or remote.")
     parser.add_argument("--host",                                       type=str, default=os.getenv("HOST", "0.0.0.0"), help="IP or hostname that the MCP server listens to in remote mode.")
-    parser.add_argument("--port",                                       type=int, default=os.getenv("PORT", "3000"), help="Port that the MCP server listens to in remote mode.")
-    parser.add_argument("--path",                                       type=str, default=os.getenv("PATH", "/mcp"), help="Path that the MCP server listens to in remote mode.")
+    parser.add_argument("--port",                                       type=int, default=os.getenv("PORT", 3000), help="Port that the MCP server listens to in remote mode.")
+    parser.add_argument("--mount-path",                                 type=str, default=os.getenv("MOUNT_PATH", "/mcp"), help="Path that the MCP server listens to in remote mode.")
     
     # Logging-related arguments
     parser.add_argument("--log-level", "--log_level", type=str, default=os.getenv("LOG_LEVEL", "INFO"),
@@ -345,7 +345,7 @@ def main():
     server = DecisionMCPServer(
         console_credentials=console_credentials,
         runtime_credentials=runtime_credentials,
-        transport=args.transport, host=args.host, port=args.port, path=args.path,
+        transport=args.transport, host=args.host, port=args.port, path=args.mount_path,
         traces_dir=args.traces_dir,
         trace_enable=trace_enable,
         trace_maxsize=args.trace_maxsize,

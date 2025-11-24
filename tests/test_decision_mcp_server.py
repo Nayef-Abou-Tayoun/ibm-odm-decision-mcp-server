@@ -4,6 +4,7 @@ import os
 import argparse
 from decision_mcp_server.DecisionMCPServer import DecisionMCPServer, parse_arguments, create_credentials
 from decision_mcp_server.Credentials import Credentials
+from decision_mcp_server.config import INSTRUCTIONS
 import mcp.types as types
 from mcp.server.fastmcp import FastMCP
 import json
@@ -107,8 +108,16 @@ def test_server_initialization(decision_server):
         {"log_level": "DEBUG"}  # Test log level argument
     ),
     (
+        ["--transport", "streamable-http", "--host", "127.0.0.1", "--port", "3001", "--mount-path", "/decision-mcp"],
+        {"transport": "streamable-http", "host": "127.0.0.1", "port": 3001, "mount_path": "/decision-mcp"}  # Test remote arguments
+    ),
+    (
+        ["--transport", "streamable-http"],
+        {"transport": "streamable-http", "host": "0.0.0.0", "port": 3000, "mount_path": "/mcp"}  # Test remote arguments with default values
+    ),
+    (
         [],  # No arguments
-        {"scope": "openid", "verifyssl": "True", "trace_enable": "False", "trace_maxsize": 50, "log_level": "INFO"}  # Default values
+        {"scope": "openid", "verifyssl": "True", "trace_enable": "False", "trace_maxsize": 50, "log_level": "INFO", "transport":"stdio"}  # Default values
     ),
 ])
 def test_parse_arguments(args, expected):  # Added 'expected' parameter
@@ -563,3 +572,149 @@ async def test_get_execution_trace_with_traces_disabled(server_with_traces_disab
     
     # Verify None is returned when traces are disabled
     assert trace is None
+
+# Test transport configuration
+def test_server_initialization_with_streamable_http_transport():
+    """Test DecisionMCPServer initialization with streamable-http transport."""
+    credentials = Credentials(
+        odm_url="http://test:9060/res",
+        username="test",
+        password="test"
+    )
+    
+    # Create server with streamable-http transport
+    server = DecisionMCPServer(
+        console_credentials=credentials,
+        runtime_credentials=credentials,
+        transport="streamable-http",
+        host="127.0.0.1",
+        port=3001,
+        path="/decision-mcp"
+    )
+    
+    # Verify transport configuration
+    assert server.transport == "streamable-http"
+    assert server.host == "127.0.0.1"
+    assert server.port == 3001
+    assert server.path == "/decision-mcp"
+
+def test_server_initialization_with_default_transport():
+    """Test DecisionMCPServer initialization with default stdio transport."""
+    credentials = Credentials(
+        odm_url="http://test:9060/res",
+        username="test",
+        password="test"
+    )
+    
+    # Create server with default transport
+    server = DecisionMCPServer(
+        console_credentials=credentials,
+        runtime_credentials=credentials
+    )
+    
+    # Verify default transport configuration
+    assert server.transport == "stdio"
+    assert server.host == "0.0.0.0"
+    assert server.port == 3000
+    assert server.path == "/mcp"
+
+def test_server_start_with_streamable_http_transport():
+    """Test that server.start() correctly configures FastMCP with streamable-http transport."""
+    credentials = Credentials(
+        odm_url="http://test:9060/res",
+        username="test",
+        password="test"
+    )
+    
+    # Create server with streamable-http transport
+    server = DecisionMCPServer(
+        console_credentials=credentials,
+        runtime_credentials=credentials,
+        transport="streamable-http",
+        host="127.0.0.1",
+        port=3001,
+        path="/custom-path"
+    )
+    
+    # Mock the FastMCP and its run method
+    with patch('decision_mcp_server.DecisionMCPServer.FastMCP') as mock_fastmcp_class, \
+         patch('decision_mcp_server.DecisionMCPServer.DecisionServerManager') as mock_manager_class:
+        
+        # Setup mocks
+        mock_fastmcp = mock_fastmcp_class.return_value
+        mock_fastmcp._mcp_server = Mock()
+        mock_fastmcp._mcp_server.list_resources = Mock()
+        mock_fastmcp._mcp_server.read_resource = Mock()
+        mock_fastmcp._mcp_server.list_tools = Mock()
+        mock_fastmcp._mcp_server.call_tool = Mock()
+        mock_fastmcp.run = Mock()
+        
+        mock_manager = mock_manager_class.return_value
+        
+        # Call start
+        server.start()
+        
+        # Verify FastMCP was initialized with correct parameters
+        mock_fastmcp_class.assert_called_once_with(
+            name="ibm-odm-decision-mcp-server",
+            instructions=INSTRUCTIONS,
+            host="127.0.0.1",
+            port=3001,
+            sse_path="/custom-path",
+            streamable_http_path="/custom-path"
+        )
+        
+        # Verify run was called with streamable-http transport
+        mock_fastmcp.run.assert_called_once_with(transport="streamable-http")
+        
+        # Verify manager was initialized
+        assert server.manager is not None
+
+def test_server_start_with_sse_transport():
+    """Test that server.start() correctly configures FastMCP with sse transport."""
+    credentials = Credentials(
+        odm_url="http://test:9060/res",
+        username="test",
+        password="test"
+    )
+    
+    # Create server with sse transport
+    server = DecisionMCPServer(
+        console_credentials=credentials,
+        runtime_credentials=credentials,
+        transport="sse",
+        host="0.0.0.0",
+        port=8080,
+        path="/sse-endpoint"
+    )
+    
+    # Mock the FastMCP and its run method
+    with patch('decision_mcp_server.DecisionMCPServer.FastMCP') as mock_fastmcp_class, \
+         patch('decision_mcp_server.DecisionMCPServer.DecisionServerManager') as mock_manager_class:
+        
+        # Setup mocks
+        mock_fastmcp = mock_fastmcp_class.return_value
+        mock_fastmcp._mcp_server = Mock()
+        mock_fastmcp._mcp_server.list_resources = Mock()
+        mock_fastmcp._mcp_server.read_resource = Mock()
+        mock_fastmcp._mcp_server.list_tools = Mock()
+        mock_fastmcp._mcp_server.call_tool = Mock()
+        mock_fastmcp.run = Mock()
+        
+        mock_manager = mock_manager_class.return_value
+        
+        # Call start
+        server.start()
+        
+        # Verify FastMCP was initialized with correct parameters
+        mock_fastmcp_class.assert_called_once_with(
+            name="ibm-odm-decision-mcp-server",
+            instructions=INSTRUCTIONS,
+            host="0.0.0.0",
+            port=8080,
+            sse_path="/sse-endpoint",
+            streamable_http_path="/sse-endpoint"
+        )
+        
+        # Verify run was called with sse transport
+        mock_fastmcp.run.assert_called_once_with(transport="sse")
