@@ -16,11 +16,6 @@ from decision_mcp_server.ExecutionToolTrace import ExecutionToolTrace, DiskTrace
 import argparse
 import os
 
-from mcp.server.auth.provider import AccessToken, TokenVerifier
-from mcp.server.auth.settings import AuthSettings
-#from datetime import timedelta, datetime
-from time import time
-
 class DecisionMCPServer:
     def __init__(self, console_credentials: Credentials, runtime_credentials: Credentials, 
                  transport: str, host: str, port: int, path: str,
