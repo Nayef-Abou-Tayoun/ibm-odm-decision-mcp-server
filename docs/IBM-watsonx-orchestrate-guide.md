@@ -106,6 +106,32 @@ You need a running instance of both:
 
    ![select the agent](images/wxo-select-agent.png)
 
+## Limitations and Workarounds
+
+### Complex Types in Decision Service Signatures
+
+**Limitation:** IBM watsonx Orchestrate currently does not support decision services that contain complex types (custom classes or complex objects) in their input/output signatures. Attempting to expose such decision services through the Decision MCP Server may result in integration issues or unexpected behavior.
+
+**Workaround:** To ensure compatibility with watsonx Orchestrate, design your decision services to expose only simple types in their signatures. This can be achieved by:
+
+1. **Flattening Data Type Definitions**: Instead of using complex custom types, break down the data structure into individual simple type parameters (strings, numbers, booleans, dates, etc.)
+
+2. **Example Transformation**:
+   - **Before (Complex Type):**
+     ```
+     Input: Customer (complex type with properties: name, age, address, creditScore)
+     Output: LoanDecision (complex type with properties: approved, amount, rate)
+     ```
+   
+   - **After (Simple Types):**
+     ```
+     Input: customerName (string), customerAge (number), customerAddress (string), customerCreditScore (number)
+     Output: loanApproved (boolean), loanAmount (number), loanRate (number)
+     ```
+
+
+By following this approach, you ensure seamless integration between ODM decision services and watsonx Orchestrate while maintaining the business logic integrity.
+
 ## Example of chat
 
 - For instance, with the ruleset from `Vacation Service` deployed, you can have the following interaction in a chat:
