@@ -21,19 +21,9 @@ from mcp.server.auth.settings import AuthSettings
 #from datetime import timedelta, datetime
 from time import time
 
-class SimpleTokenVerifier(TokenVerifier):
-    """Simple token verifier for demonstration."""
-
-    async def verify_token(self, token: str) -> AccessToken | None:
-        # This is where you would implement actual token validation
-        #print(f'token={token}')
-        expires_at: int = int(time()) + 3600
-        return AccessToken(token="", client_id="", scopes=[], expires_at=expires_at)
-
-
 class DecisionMCPServer:
     def __init__(self, console_credentials: Credentials, runtime_credentials: Credentials, 
-                 remote: bool, port: int,
+                 transport: str, host: str, port: int, path: str,
                  traces_dir: Optional[str] = None, trace_enable: bool = False, trace_maxsize: int = 50):
         # Get logger for this class
         self.logger = logging.getLogger(__name__)
@@ -58,8 +48,11 @@ class DecisionMCPServer:
         self.manager = None
         self.console_credentials = console_credentials
         self.runtime_credentials = runtime_credentials
-        self.remote = remote
-        self.port   = port
+
+        self.transport = transport
+        self.host      = host
+        self.port      = port
+        self.path      = path
 
     async def list_resources(self) -> list[types.Resource]:
         return [
@@ -205,19 +198,11 @@ class DecisionMCPServer:
 
         self.server = FastMCP(name="ibm-odm-decision-mcp-server",
                               instructions=INSTRUCTIONS,
+                              host=self.host,
                               port=self.port,
+                              sse_path=self.path,
+                              streamable_http_path=self.path,
                              )
-        '''
-        self.server = FastMCP(name="ibm-odm-decision-mcp-server",
-                              instructions=INSTRUCTIONS,
-                              port=self.port,
-                              token_verifier= SimpleTokenVerifier(),
-                              auth=AuthSettings(
-                                  issuer_url="http://dummy.url",
-                                  resource_server_url=None,
-                              ),
-                             )
-        '''
 
         # Register handlers
         self.server._mcp_server.list_resources()(self.list_resources)
@@ -225,10 +210,7 @@ class DecisionMCPServer:
         self.server._mcp_server.list_tools()(self.list_tools)
         self.server._mcp_server.call_tool()(self.call_tool)
 
-        if self.remote:
-            self.server.run(transport="streamable-http")
-        else:
-            self.server.run(transport="stdio")
+        self.server.run(transport=self.transport)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Decision MCP Server")
@@ -251,6 +233,12 @@ def parse_arguments():
     parser.add_argument("--mtls-key-password",  "--mtls_key_password",  type=str, default=os.getenv("MTLS_KEY_PASSWORD"), help="Password to decrypt the private key of the client for mutual TLS authentication. Only needed if the key is password-protected.")
     parser.add_argument("--console-auth-type",  "--console_auth_type",  type=str, default=os.getenv("CONSOLE_AUTH_TYPE"), choices=["BASIC", "ZEN", "PKJWT", "SECRET", "NONE"], help="Explicitly set the authentication type for the RES Console")
     parser.add_argument("--runtime-auth-type",  "--runtime_auth_type",  type=str, default=os.getenv("RUNTIME_AUTH_TYPE"), choices=["BASIC", "ZEN", "PKJWT", "SECRET", "NONE"], help="Explicitly set the authentication type for the Decision Server Runtime")
+
+    # arguments useful when running the MCP server in remote mode
+    parser.add_argument("--transport",                                  type=str, default=os.getenv("TRANSPORT", "stdio"), choices=["stdio", "streamable-http", "sse"], help="Means of communication of the Decision MCP server: local (stdio) or remote.")
+    parser.add_argument("--host",                                       type=str, default=os.getenv("HOST", "0.0.0.0"), help="IP or hostname that the MCP server listens to in remote mode.")
+    parser.add_argument("--port",                                       type=int, default=os.getenv("PORT", "3000"), help="Port that the MCP server listens to in remote mode.")
+    parser.add_argument("--path",                                       type=str, default=os.getenv("PATH", "/mcp"), help="Path that the MCP server listens to in remote mode.")
     
     # Logging-related arguments
     parser.add_argument("--log-level", "--log_level", type=str, default=os.getenv("LOG_LEVEL", "INFO"),
@@ -362,12 +350,9 @@ def main():
     server = DecisionMCPServer(
         console_credentials=console_credentials,
         runtime_credentials=runtime_credentials,
-        remote=True, port=3000,
+        transport=args.transport, host=args.host, port=args.port, path=args.path,
         traces_dir=args.traces_dir,
         trace_enable=trace_enable,
         trace_maxsize=args.trace_maxsize,
     )
     server.start()
-
-if __name__ == "__main__":
-    main()
