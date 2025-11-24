@@ -18,7 +18,7 @@ import os
 
 class DecisionMCPServer:
     def __init__(self, console_credentials: Credentials, runtime_credentials: Credentials, 
-                 transport: str, host: str, port: int, path: str,
+                 transport: Optional[str] = 'stdio', host: Optional[str] = '0.0.0.0', port: Optional[int] = 3000, path: Optional[str] = '/mcp',
                  traces_dir: Optional[str] = None, trace_enable: bool = False, trace_maxsize: int = 50):
         # Get logger for this class
         self.logger = logging.getLogger(__name__)

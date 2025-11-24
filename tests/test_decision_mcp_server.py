@@ -5,7 +5,7 @@ import argparse
 from decision_mcp_server.DecisionMCPServer import DecisionMCPServer, parse_arguments, create_credentials
 from decision_mcp_server.Credentials import Credentials
 import mcp.types as types
-from mcp.server import Server
+from mcp.server.fastmcp import FastMCP
 import json
 
 # Test fixtures
@@ -27,11 +27,11 @@ def mock_runtime_credentials():
 
 @pytest.fixture
 def mock_server():
-    return Mock(spec=Server)
+    return Mock(spec=FastMCP)
 
 @pytest.fixture
 def decision_server(mock_console_credentials, mock_runtime_credentials, mock_server):
-    server = DecisionMCPServer(console_credentials=mock_console_credentials, runtime_credentials=mock_runtime_credentials, traces_dir=None)
+    server = DecisionMCPServer(console_credentials=mock_console_credentials, runtime_credentials=mock_runtime_credentials)
     server.server = mock_server
     server.manager = Mock()
     return server
