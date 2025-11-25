@@ -129,7 +129,6 @@ You need a running instance of both:
      Output: loanApproved (boolean), loanAmount (number), loanRate (number)
      ```
 
-
 By following this approach, you ensure seamless integration between ODM decision services and watsonx Orchestrate while maintaining the business logic integrity.
 
 ## Example of chat
