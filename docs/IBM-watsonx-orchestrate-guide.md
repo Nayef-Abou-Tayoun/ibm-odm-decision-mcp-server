@@ -106,6 +106,7 @@ You need a running instance of both:
 
    ![select the agent](images/wxo-select-agent.png)
 
+
 ## Limitations and Workarounds
 
 ### Complex Types in Decision Service Signatures
@@ -114,22 +115,31 @@ You need a running instance of both:
 
 **Workaround:** To ensure compatibility with watsonx Orchestrate, design your decision services to expose only simple types in their signatures. This can be achieved by:
 
-1. **Flattening Data Type Definitions**: Instead of using complex custom types, break down the data structure into individual simple type parameters (strings, numbers, booleans, dates, etc.)
+1. **Flattening Data Type Definitions**  
+   Instead of using complex custom types, break down the data structure into individual simple type parameters (strings, numbers, booleans, dates, etc.).
 
-2. **Example Transformation**:
+2. **Creating a Facade Decision Operation**  
+   Users do **not** need to modify the core decision service or its complex parameters. Instead, create a new decision operation that acts as a facade:
+   - Define a ruleset that uses only simple type parameters.
+   - Implement a new ruleflow that maps these simple parameters to the original complex objects.
+   - Call the main decision service ruleflow from this facade.
+
+3. **Example Transformation**  
    - **Before (Complex Type):**
      ```
      Input: Customer (complex type with properties: name, age, address, creditScore)
      Output: LoanDecision (complex type with properties: approved, amount, rate)
      ```
    
-   - **After (Simple Types):**
+   - **After (Facade with Simple Types):**
      ```
      Input: customerName (string), customerAge (number), customerAddress (string), customerCreditScore (number)
      Output: loanApproved (boolean), loanAmount (number), loanRate (number)
      ```
+     The new ruleflow maps these simple inputs to the original `Customer` object and invokes the main decision service internally.
 
-By following this approach, you ensure seamless integration between ODM decision services and watsonx Orchestrate while maintaining the business logic integrity.
+By following this approach, you ensure seamless integration between ODM decision services and watsonx Orchestrate while preserving the integrity of your existing business logic.
+
 
 ## Example of chat
 
