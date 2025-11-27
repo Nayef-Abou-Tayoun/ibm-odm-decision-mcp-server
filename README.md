@@ -423,11 +423,11 @@ By default, the Decision MCP Server runs on the same computer as the MCP client 
 But you can also run the Decision MCP Server on a server and configure it to communicate with the MCP clients through the network. 
 
 To do: 
-- use the command line argument `--transport` with either the value `streamable-http` (preferrably or `sse`).
+- use the command line argument `--transport` with either the value `streamable-http` (preferrably) or `sse`.
 - when the Decision MCP server is started in remote mode, it listens to 
-  - all network interfaces by default (`0.0.0.0`). You can specify a different interface using the argument `--host`.
-  - the port `3000`. You can specify a different interface using the argument `--port`.
-  - the URL http://<host>:<port>/mcp . You can specify a different path than `/mcp` using the argument `--mount-path`.
+  - all network interfaces by default (`0.0.0.0`). You can specify a specific interface using the argument `--host`.
+  - the port `3000`. You can specify a different port using the argument `--port`.
+  - the URL `http://<host>:<port>/mcp`. You can specify a different path than `/mcp` using the argument `--mount-path`.
 
 ---
 
