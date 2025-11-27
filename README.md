@@ -416,6 +416,21 @@ The example below shows how to configure the Decision MCP Server when:
 
 ---
 
+### Configure the Decision MCP Server for remote connections
+
+By default, the Decision MCP Server runs on the same computer as the MCP client (the AI Agent). 
+
+But you can also run the Decision MCP Server on a server and configure it to communicate with the MCP clients through the network. 
+
+To do: 
+- use the command line argument `--transport` with either the value `streamable-http` (preferrably or `sse`).
+- when the Decision MCP server is started in remote mode, it listens to 
+  - all network interfaces by default (`0.0.0.0`). You can specify a different interface using the argument `--host`.
+  - the port `3000`. You can specify a different interface using the argument `--port`.
+  - the URL http://<host>:<port>/mcp . You can specify a different path than `/mcp` using the argument `--mount-path`.
+
+---
+
 ### Ruleset Properties for the Decision MCP Server
 
 You can configure how your Decision Server rulesets are exposed as MCP tools by setting specific ruleset properties in IBM ODM. These properties control whether a ruleset is available as a tool and how it's presented to AI assistants.
