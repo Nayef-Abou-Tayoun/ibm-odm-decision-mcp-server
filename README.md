@@ -28,8 +28,9 @@ For detailed instructions on setting up and using Claude Desktop with the Decisi
 
 Watch our demo video to see Claude Desktop integration in action:
 
-<video src="https://github.com/user-attachments/assets/0cec3eec-cf02-4456-ba69-15d5a0fc799a" controls="controls" style="max-width: 730px;">
-</video>
+
+https://github.com/user-attachments/assets/53e9f887-6972-40d9-81c0-51dd4b31b165
+
 
 
 ## IBM Watsonx Orchestrate Integration
