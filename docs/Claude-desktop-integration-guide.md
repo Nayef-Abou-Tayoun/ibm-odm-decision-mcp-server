@@ -37,7 +37,7 @@
     uv python list
     ```
 
-### Step 2: Install Docker Rancher Desktop (Optional)
+### Step 2: Install Docker or Rancher Desktop (Optional)
 
 If you don't have Docker installed yet, we recommend using Rancher Desktop which provides Docker and Kubernetes in a single application.
 
