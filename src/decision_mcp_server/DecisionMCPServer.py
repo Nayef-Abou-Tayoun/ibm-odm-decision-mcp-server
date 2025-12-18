@@ -30,6 +30,7 @@ from decision_mcp_server.config import INSTRUCTIONS, BASE_DIR
 from decision_mcp_server.ExecutionToolTrace import ExecutionToolTrace, DiskTraceStorage
 import argparse
 import os
+import sys
 
 class DecisionMCPServer:
     def __init__(self, console_credentials: Credentials, runtime_credentials: Credentials, traces_dir: Optional[str] = None, trace_enable: bool = False, trace_maxsize: int = 50):
@@ -346,7 +347,7 @@ async def main():
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
         )
-    logging.info(f"Logging level set to: {logging.getLevelName(logging_level)}")
+    logging.info(f"Running Python {sys.version_info}. Logging level set to: {logging.getLevelName(logging_level)}")
 
     console_credentials, runtime_credentials = create_credentials(args)
     # Convert trace_enable from string to boolean
