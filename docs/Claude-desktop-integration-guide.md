@@ -17,14 +17,25 @@
     brew install uv
     ```
   - on Windows: 
-    - in Powershell, run the command described in [installing uv](https://docs.astral.sh/uv/getting-started/installation/)
-    - once `uv` is installed, open a new Powershell window/tab, and run the command below:
-      ```powershell
-      uvx --from git+https://github.com/DecisionsDev/ibm-odm-decision-mcp-server ibm-odm-decision-mcp-server
-      ``` 
-    - wait for `uvx` to complete downloading all the Python packages required by Decision MCP server
-    - you can then safely stop the `uvx` command line
-
+    1. in Powershell, run the command described in [installing uv](https://docs.astral.sh/uv/getting-started/installation/)
+    1. once `uv` is installed, open a new Powershell tab, and run the command below:
+        ```powershell
+        uv tool install git+https://github.com/DecisionsDev/ibm-odm-decision-mcp-server
+        ```
+    1. run the command below in Powershell:
+        ```powershell
+        New-Item -ItemType SymbolicLink -Path "$(Split-Path (Get-Command git).Source -Parent)\git" -Target (Get-Command git).Source
+        ```
+        > Note:
+        > This command creates a symbolic link named `git` to `git.exe` to prevent the errors below (from happening whenever the GitHub repository was updated and uvx calls git to fetch the changes): 
+        > ```
+        > 2025-12-31T10:29:46.477Z [ibm-odm-decision-mcp-server] [info] Message from client: {"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"claude-ai","version":"0.1.0"}},"jsonrpc":"2.0","id":0} { metadata: undefined }
+        >    Updating https://github.com/DecisionsDev/ibm-odm-decision-mcp-server (HEAD)
+        >   × Failed to download and build `decision-mcp-server @
+        >   │ git+https://github.com/DecisionsDev/ibm-odm-decision-mcp-server@bbb8a86091410aa1f8a9fa458c43a6fba38596f3`
+        >   ├─▶ Git operation failed
+        >   ╰─▶ Git executable not found. Ensure that Git is installed and available.
+        > ```
 - Verify your Python and `uv` installation:
 
     **For macOS/Linux (in Terminal):**
