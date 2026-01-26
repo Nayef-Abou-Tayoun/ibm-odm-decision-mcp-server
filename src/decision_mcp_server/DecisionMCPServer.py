@@ -17,9 +17,8 @@ import json
 from typing import Optional
 from mcp.server.models import InitializationOptions
 import mcp.types as types
-from mcp.server import NotificationOptions, Server
+from mcp.server.fastmcp import FastMCP
 from pydantic import AnyUrl
-import mcp.server.stdio
 import logging
 import urllib3
 
@@ -33,7 +32,9 @@ import os
 import sys
 
 class DecisionMCPServer:
-    def __init__(self, console_credentials: Credentials, runtime_credentials: Credentials, traces_dir: Optional[str] = None, trace_enable: bool = False, trace_maxsize: int = 50):
+    def __init__(self, console_credentials: Credentials, runtime_credentials: Credentials, 
+                 transport: Optional[str] = 'stdio', host: Optional[str] = '0.0.0.0', port: Optional[int] = 3000, path: Optional[str] = '/mcp',
+                 traces_dir: Optional[str] = None, trace_enable: bool = False, trace_maxsize: int = 50):
         # Get logger for this class
         self.logger = logging.getLogger(__name__)
         
@@ -54,11 +55,14 @@ class DecisionMCPServer:
             self.execution_traces = None
             self.logger.info("Trace storage is disabled")
         
-        self.server = Server("decision-mcp-server")
         self.manager = None
         self.console_credentials = console_credentials
         self.runtime_credentials = runtime_credentials
-        
+
+        self.transport = transport
+        self.host      = host
+        self.port      = port
+        self.path      = path
 
     async def list_resources(self) -> list[types.Resource]:
         return [
@@ -197,32 +201,26 @@ class DecisionMCPServer:
             
         return self.execution_traces.get(trace_id)
 
-    async def start(self):
+    def start(self):
 
         self.manager = DecisionServerManager(console_credentials=self.console_credentials, 
                                              runtime_credentials=self.runtime_credentials)
 
-        # Register handlers
-        self.server.list_resources()(self.list_resources)
-        self.server.read_resource()(self.read_resource)
-        self.server.list_tools()(self.list_tools)
-        self.server.call_tool()(self.call_tool)
+        self.server = FastMCP(name="ibm-odm-decision-mcp-server",
+                              instructions=INSTRUCTIONS,
+                              host=self.host,
+                              port=self.port,
+                              sse_path=self.path,
+                              streamable_http_path=self.path,
+                             )
 
-        # Run the server using stdin/stdout streams
-        async with mcp.server.stdio.stdio_server() as (read_stream, write_stream):
-            await self.server.run(
-                read_stream,
-                write_stream,
-                InitializationOptions(
-                    server_name="decision-mcp-server",
-                    server_version="0.2.0",
-                    instructions=INSTRUCTIONS,
-                    capabilities=self.server.get_capabilities(
-                        notification_options=NotificationOptions(),
-                        experimental_capabilities={},
-                    ),
-                ),
-            )
+        # Register handlers
+        self.server._mcp_server.list_resources()(self.list_resources)
+        self.server._mcp_server.read_resource()(self.read_resource)
+        self.server._mcp_server.list_tools()(self.list_tools)
+        self.server._mcp_server.call_tool()(self.call_tool)
+
+        self.server.run(transport=self.transport)
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Decision MCP Server")
@@ -245,6 +243,12 @@ def parse_arguments():
     parser.add_argument("--mtls-key-password",  "--mtls_key_password",  type=str, default=os.getenv("MTLS_KEY_PASSWORD"), help="Password to decrypt the private key of the client for mutual TLS authentication. Only needed if the key is password-protected.")
     parser.add_argument("--console-auth-type",  "--console_auth_type",  type=str, default=os.getenv("CONSOLE_AUTH_TYPE"), choices=["BASIC", "ZEN", "PKJWT", "SECRET", "NONE"], help="Explicitly set the authentication type for the RES Console")
     parser.add_argument("--runtime-auth-type",  "--runtime_auth_type",  type=str, default=os.getenv("RUNTIME_AUTH_TYPE"), choices=["BASIC", "ZEN", "PKJWT", "SECRET", "NONE"], help="Explicitly set the authentication type for the Decision Server Runtime")
+
+    # arguments useful when running the MCP server in remote mode
+    parser.add_argument("--transport",                                  type=str, default=os.getenv("TRANSPORT", "stdio"), choices=["stdio", "streamable-http", "sse"], help="Means of communication of the Decision MCP server: local (stdio) or remote.")
+    parser.add_argument("--host",                                       type=str, default=os.getenv("HOST", "0.0.0.0"), help="IP or hostname that the MCP server listens to in remote mode.")
+    parser.add_argument("--port",                                       type=int, default=os.getenv("PORT", 3000), help="Port that the MCP server listens to in remote mode.")
+    parser.add_argument("--mount-path",                                 type=str, default=os.getenv("MOUNT_PATH", "/mcp"), help="Path that the MCP server listens to in remote mode.")
     
     # Logging-related arguments
     parser.add_argument("--log-level", "--log_level", type=str, default=os.getenv("LOG_LEVEL", "INFO"),
@@ -326,7 +330,7 @@ def create_credentials(args):
 
     return console_credentials, runtime_credentials
     
-async def main():
+def main():
     """Main entry point for the Decision MCP Server."""
     args = parse_arguments()
     
@@ -356,8 +360,9 @@ async def main():
     server = DecisionMCPServer(
         console_credentials=console_credentials,
         runtime_credentials=runtime_credentials,
+        transport=args.transport, host=args.host, port=args.port, path=args.mount_path,
         traces_dir=args.traces_dir,
         trace_enable=trace_enable,
-        trace_maxsize=args.trace_maxsize
+        trace_maxsize=args.trace_maxsize,
     )
-    await server.start()
+    server.start()

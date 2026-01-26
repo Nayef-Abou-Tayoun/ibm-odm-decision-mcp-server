@@ -233,7 +233,16 @@ The parameters below can be specified:
 | `--traces-dir`    | `TRACES_DIR`        | Directory to store execution traces                                                                     | `~/.mcp-server/traces`                  |
 | `--trace-enable`  | `TRACE_ENABLE`      | Enable or disable trace storage (`True` or `False`)                                                     | `False`                                 |
 | `--trace-maxsize` | `TRACE_MAXSIZE`     | Maximum number of traces to store before removing oldest traces                                         | `50`                                    |
-          
+
+> Parameters to start the MCP server in remote mode (allowing connections from remote MCP clients) 
+>| CLI Argument | Environment Variable | Description | Default |
+>|--------------|----------------------|-------------|---------|
+>| `--transport`| `TRANSPORT`          | `stdio`, `streamable-http` or `sse` : Means of communication of the Decision MCP server: local (`stdio`) or remote (`streamable-http` or `sse`)) | `stdio` |
+>| `--host`     | `HOST`               | IP or hostname that the MCP server listens to in remote mode. | `0.0.0.0` |
+>| `--port`     | `PORT`               | Port that the MCP server listens to in remote mode. | `3000` |
+>| `--mount-path`| `MOUNT_PATH`        | Path that the MCP server listens to in remote mode. | `/mcp` |
+
+
 ### Decision MCP Server Configuration File          
 
 You can configure the MCP server for clients like Claude Desktop or Cursor AI using a JSON configuration file, which can contain both environment variables and command-line arguments.
@@ -406,6 +415,21 @@ The example below shows how to configure the Decision MCP Server when:
   "MTLS_CERT_PATH":  "CERTIFICATE_FILENAME"
 }
 ```
+
+---
+
+### Configure the Decision MCP Server for remote connections
+
+By default, the Decision MCP Server runs on the same computer as the MCP client (the AI Agent). 
+
+But you can also run the Decision MCP Server on a server and configure it to communicate with the MCP clients through the network. 
+
+To do: 
+- use the command line argument `--transport` with either the value `streamable-http` (preferrably) or `sse`.
+- when the Decision MCP server is started in remote mode, it listens to 
+  - all network interfaces by default (`0.0.0.0`). You can specify a specific interface using the argument `--host`.
+  - the port `3000`. You can specify a different port using the argument `--port`.
+  - the URL `http://<host>:<port>/mcp`. You can specify a different path than `/mcp` using the argument `--mount-path`.
 
 ---
 
