@@ -20,9 +20,11 @@ It enables you to:
 
 ---
 
-## Quickstart: Claude Desktop Integration
+## Quickstart
 
-For detailed instructions on setting up and using Claude Desktop with the Decision MCP Server, see the [Claude Desktop Integration Guide](/docs/Claude-desktop-integration-guide.md).
+Check the [Claude Desktop Integration Guide](/docs/Claude-desktop-integration-guide.md) for detailed instructions on setting up and using the Decision MCP Server in **Claude Desktop**.
+
+Or check the [IBM Bob Integration Guide](/docs/IBM-Bob-integration-guide.md) for detailed instructions on setting up and using the Decision MCP Server in **IBM Bob**.
 
 ### Demo Video
 
