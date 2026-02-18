@@ -70,10 +70,6 @@ Here are the steps to install Rancher Desktop if you chose this application to r
             wsl --install
             ```
         - Restart your computer when prompted
-        - Open PowerShell as Administrator and run:
-            ```powershell
-            wsl --install
-            ```
         - After restart, a Linux distribution (usually Ubuntu) will be installed automatically
         - Set up your Linux username and password when prompted (ex: admin/admin)
     1. Download the installer from [Rancher Desktop website](https://rancherdesktop.io/)
