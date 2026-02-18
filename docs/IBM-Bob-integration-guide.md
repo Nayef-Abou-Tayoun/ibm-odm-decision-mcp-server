@@ -173,7 +173,7 @@ With the configuration above, the Decision MCP Server
 
 - Enter the following text and press ENTER:
     ```
-    Please let me know if I can borrow 100,000$ for 10 years
+    Please let me know if I can borrow $100,000 for 10 years
     ```
 - **Bob** offers to run the `miniloan_serviceoperation` tool with the parameters
     ```
