@@ -208,7 +208,7 @@ With the configuration above, the Decision MCP Server
 
 - You can ask again with different inputs. For instance:
     ```
-    My annual income is actually 40,000$ and my credit score 300
+    My annual income is actually $40,000 and my credit score 300
     ```
 - **Bob** offers to run the `miniloan_serviceoperation` tool with the parameters
     ```
