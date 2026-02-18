@@ -166,7 +166,7 @@ With the configuration above, the Decision MCP Server
 - connects to the IBM ODM Developer Edition container which embeds a sample database containing several decision services:
     1. **Vacation Policy Decision Service** – Computes vacation days based on company policy.
     2. **Beauty Advice Decision Service** – Provides personalized beauty recommendations.
-    3. **Agent Miniloan Service** – Assess loan requests.
+    3. **Agent Miniloan Service** – Assesses loan requests.
 - exposes the rulesets deployed as MCP tools.
 
 ### Example using the miniloan ruleset/tool
