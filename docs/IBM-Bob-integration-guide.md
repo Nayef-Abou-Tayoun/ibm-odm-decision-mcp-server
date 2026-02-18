@@ -80,7 +80,7 @@ Here are the steps to install Rancher Desktop if you chose this application to r
     1. Run the installer and follow the on-screen instructions
     1. Run Rancher Desktop
         - Disable Kubernetes (Not needed for this demonstration)
-        - Wait until the initialization was finished.
+        - Wait until the initialization is finished.
         - Ensure WSL integration is enabled
         - Select "dockerd" as the container runtime (not "containerd")
         - After installation, Rancher Desktop will start automatically
