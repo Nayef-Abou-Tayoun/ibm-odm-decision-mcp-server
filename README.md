@@ -20,9 +20,11 @@ It enables you to:
 
 ---
 
-## Quickstart: Claude Desktop Integration
+## Quickstart
 
-For detailed instructions on setting up and using Claude Desktop with the Decision MCP Server, see the [Claude Desktop Integration Guide](/docs/Claude-desktop-integration-guide.md).
+Check the [Claude Desktop Integration Guide](/docs/Claude-desktop-integration-guide.md) for detailed instructions on setting up and using the Decision MCP Server in **Claude Desktop**.
+
+Or check the [IBM Bob Integration Guide](/docs/IBM-Bob-integration-guide.md) for detailed instructions on setting up and using the Decision MCP Server in **IBM Bob**.
 
 ### Demo Video
 
@@ -548,7 +550,6 @@ By combining rich service descriptions with properly annotated model classes, yo
 - For IBM Operational Decision Manager (ODM), see [IBM Documentation](https://www.ibm.com/docs/en/odm).
 - For IBM Watsonx Orchestrate, see [Getting Started](https://www.ibm.com/docs/en/watsonx/watson-orchestrate/base?topic=getting-started-watsonx-orchestrate).
 - For Claude Desktop, see [Claude Documentation](https://support.claude.com/en/collections/16163169-claude-desktop).
-
 
 ---
 
