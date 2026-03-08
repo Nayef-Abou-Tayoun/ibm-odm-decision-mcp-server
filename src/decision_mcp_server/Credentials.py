@@ -167,7 +167,7 @@ class Credentials:
             return {
                 'Authorization': f'ZenApiKey {encoded_zen_key}' ,
                 'Content-Type': 'application/json; charset=UTF-8', 
-                'accept': 'application/json; charset=UTF-8'
+                'Accept': 'application/json'
             }
         elif self.client_id or self.client_secret:
             if not self.client_id or not self.token_url:
@@ -274,7 +274,7 @@ class Credentials:
             return {
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json; charset=UTF-8',
-                'accept': 'application/json; charset=UTF-8'
+                'Accept': 'application/json'
             }
         elif self.username and self.password:
             concatenated_key = f"{self.username}:{self.password}"
@@ -282,12 +282,12 @@ class Credentials:
             return { 
                 'Authorization': f'Basic {encoded_user_cred}',
                 'Content-Type': 'application/json; charset=UTF-8',
-                'accept': 'application/json; charset=UTF-8'
+                'Accept': 'application/json'
             }
         else:
             return { 
                 'Content-Type': 'application/json; charset=UTF-8',
-                'accept': 'application/json; charset=UTF-8'
+                'Accept': 'application/json'
             }
 
     def get_session(self):
