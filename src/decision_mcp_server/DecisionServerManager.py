@@ -233,6 +233,15 @@ class DecisionServerManager:
             list: A list of formatted rulesets.
         """
         formatted_tools = []
+        
+        # Defensive check: handle None or invalid rulesets
+        if filtered_rulesets is None:
+            self.logger.warning("filtered_rulesets is None, returning empty list")
+            return formatted_tools
+        
+        if not isinstance(filtered_rulesets, dict):
+            self.logger.error(f"filtered_rulesets is not a dict: {type(filtered_rulesets)}")
+            return formatted_tools
 
         for ruleset in filtered_rulesets.values():
 
@@ -268,6 +277,20 @@ class DecisionServerManager:
 
                 # Parse and display the JSON response
                 data = response.json()
+                
+                # ODM API may return a list directly instead of dict with 'elements'
+                # Convert list to the expected format if needed
+                if isinstance(data, list):
+                    self.logger.info(f"Received list response with {len(data)} ruleapps")
+                    # data is already in the format we need for extract_highest_version_rulesets
+                    pass
+                elif isinstance(data, dict) and 'elements' in data:
+                    self.logger.info(f"Received dict response with {len(data.get('elements', []))} ruleapps")
+                    data = data['elements']
+                else:
+                    self.logger.error(f"Unexpected response format: {type(data)}")
+                    return {}
+                
                 # Extract the highest version rulesets
                 highest_version_rulesets = self.extract_highest_version_rulesets(data)
 
@@ -275,11 +298,14 @@ class DecisionServerManager:
             else:
                 self.logger.error("Request failed with status code: %s", response.status_code)
                 self.logger.error("Response: %s", response.text)
+                return {}
 
         except requests.exceptions.RequestException as e:
             self.logger.error("An error occurred: %s", e)
-        except json.JSONDecodeError:
-            self.logger.error("Failed to decode JSON response.")
+            return {}
+        except json.JSONDecodeError as e:
+            self.logger.error("Failed to decode JSON response: %s", e)
+            return {}
 
     def invokeDecisionService(self, rulesetPath, decisionInputs, trace=True):
         """
