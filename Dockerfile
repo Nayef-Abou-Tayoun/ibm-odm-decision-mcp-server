@@ -11,4 +11,4 @@ ENV PYTHONPATH=/app/src
 
 EXPOSE 8080
 
-CMD ["decision-mcp-server","--transport","sse","--host","0.0.0.0","--port","8080","--runtime-url","https://dev-ds-runtime.odm.robobob.ca","--username","odmAdmin","--password","odmAdmin"]
+CMD ["decision-mcp-server","--transport","sse","--mount-path","/sse","--host","0.0.0.0","--port","8080","--runtime-url","https://dev-ds-runtime.odm.robobob.ca","--username","odmAdmin","--password","odmAdmin"]
