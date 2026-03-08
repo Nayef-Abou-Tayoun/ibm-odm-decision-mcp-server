@@ -9,4 +9,6 @@ RUN pip install .
 
 ENV PYTHONPATH=/app/src
 
-CMD ["decision-mcp-server"]
+EXPOSE 8000
+
+CMD ["decision-mcp-server", "serve", "--host", "0.0.0.0", "--port", "8000"]
