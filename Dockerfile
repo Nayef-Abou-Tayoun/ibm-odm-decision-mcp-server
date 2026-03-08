@@ -1,25 +1,10 @@
-FROM nodered/node-red:3.1.10
+FROM python:3.11-slim
 
-USER root
+WORKDIR /app
 
-RUN npm install \
-    node-red-dashboard \
-    node-red-node-ui-table \
-    ibm-cos-sdk
+COPY . .
 
-# 👉 COPY COS helper script
-COPY cos_get_base64.js /usr/local/bin/cos_get_base64.js
-RUN chmod +x /usr/local/bin/cos_get_base64.js
+RUN pip install --upgrade pip
+RUN pip install .
 
-# Copy bootstrap + settings
-COPY bootstrap.sh /usr/local/bin/bootstrap.sh
-COPY settings.js /data/settings.js
-
-RUN chmod +x /usr/local/bin/bootstrap.sh \
- && chown -R node-red:node-red /data
-
-USER node-red
-
-EXPOSE 1880
-
-ENTRYPOINT ["/usr/local/bin/bootstrap.sh"]
+CMD ["python", "-m", "decision_mcp_server"]
