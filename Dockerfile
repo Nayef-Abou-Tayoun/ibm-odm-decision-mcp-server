@@ -9,4 +9,4 @@ RUN pip install .
 
 ENV PYTHONPATH=/app/src
 
-CMD ["python", "-m", "decision_mcp_server"]
+CMD ["decision-mcp-server"]
