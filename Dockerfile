@@ -9,89 +9,95 @@ RUN pip install .
 
 ENV PYTHONPATH=/app/src
 
-# Create a Python wrapper that catches and handles the error
-RUN cat > /app/safe_server.py << 'EOF'
-#!/usr/bin/env python3
-"""
-Wrapper for decision-mcp-server that adds error handling for the list_tools bug.
-This intercepts MCP requests and adds defensive null checks.
-"""
+# Create a patch file that fixes the None.values() bug
+RUN cat > /tmp/fix_server.py << 'EOFPATCH'
 import sys
-import json
-import asyncio
-from typing import Any, Dict
-import logging
+import os
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+# Path to the DecisionServerManager.py file
+manager_file = "/app/src/decision_mcp_server/DecisionServerManager.py"
 
-# Import the original server module
+print(f"Patching {manager_file}...", file=sys.stderr)
+
 try:
-    from decision_mcp_server import server
-    from mcp.server import Server
-    from mcp.types import Tool
-except ImportError as e:
-    logger.error(f"Failed to import decision_mcp_server: {e}")
-    sys.exit(1)
-
-# Wrap the original list_tools handler
-original_handlers = {}
-
-def wrap_list_tools_handler(original_server: Server):
-    """Wrap the list_tools handler with error handling."""
+    with open(manager_file, 'r') as f:
+        content = f.read()
     
-    # Store original handler
-    if hasattr(original_server, '_request_handlers'):
-        handlers = original_server._request_handlers
-        if 'tools/list' in handlers:
-            original_handlers['tools/list'] = handlers['tools/list']
-            
-            async def safe_list_tools(*args, **kwargs):
-                """Safe wrapper for list_tools that handles None values."""
-                try:
-                    result = await original_handlers['tools/list'](*args, **kwargs)
-                    
-                    # Handle None result
-                    if result is None:
-                        logger.warning("list_tools returned None, returning empty list")
-                        return {"tools": []}
-                    
-                    # Handle dict with .values()
-                    if isinstance(result, dict):
-                        if 'tools' not in result:
-                            tools = list(result.values()) if result else []
-                            return {"tools": tools}
-                    
-                    return result
-                    
-                except AttributeError as e:
-                    logger.error(f"AttributeError in list_tools (likely None.values()): {e}")
-                    return {"tools": []}
-                except Exception as e:
-                    logger.error(f"Error in list_tools: {e}", exc_info=True)
-                    return {"tools": []}
-            
-            # Replace handler
-            handlers['tools/list'] = safe_list_tools
-            logger.info("Successfully wrapped list_tools handler")
+    # Fix 1: Make fetch_rulesets return empty dict on error instead of None
+    original_fetch = '''        except requests.exceptions.RequestException as e:
+            self.logger.error("An error occurred: %s", e)
+        except json.JSONDecodeError:
+            self.logger.error("Failed to decode JSON response.")'''
+    
+    fixed_fetch = '''        except requests.exceptions.RequestException as e:
+            self.logger.error("An error occurred: %s", e)
+            return {}  # Return empty dict instead of None
+        except json.JSONDecodeError:
+            self.logger.error("Failed to decode JSON response.")
+            return {}  # Return empty dict instead of None'''
+    
+    content = content.replace(original_fetch, fixed_fetch)
+    
+    # Fix 2: Add defensive check in generate_tools_format
+    original_generate = '''    def generate_tools_format(self, filtered_rulesets)-> list[DecisionServiceDescription]:
+        """
+        :no-index:
+        Generates a formatted list of rulesets in the tools format from the filtered rulesets.
 
-# Apply wrapper
-if server:
-    wrap_list_tools_handler(server)
+        Args:
+            filtered_rulesets (dict): A dictionary of filtered rulesets.
 
-# Run the server
-if __name__ == "__main__":
-    import sys
-    from decision_mcp_server.__main__ import main
-    sys.exit(main())
-EOF
+        Returns:
+            list: A list of formatted rulesets.
+        """
+        formatted_tools = []
 
-RUN chmod +x /app/safe_server.py
+        for ruleset in filtered_rulesets.values():'''
+    
+    fixed_generate = '''    def generate_tools_format(self, filtered_rulesets)-> list[DecisionServiceDescription]:
+        """
+        :no-index:
+        Generates a formatted list of rulesets in the tools format from the filtered rulesets.
+
+        Args:
+            filtered_rulesets (dict): A dictionary of filtered rulesets.
+
+        Returns:
+            list: A list of formatted rulesets.
+        """
+        formatted_tools = []
+        
+        # Defensive check: handle None or empty rulesets
+        if filtered_rulesets is None:
+            self.logger.warning("filtered_rulesets is None, returning empty list")
+            return formatted_tools
+        
+        if not isinstance(filtered_rulesets, dict):
+            self.logger.error(f"filtered_rulesets is not a dict: {type(filtered_rulesets)}")
+            return formatted_tools
+
+        for ruleset in filtered_rulesets.values():'''
+    
+    content = content.replace(original_generate, fixed_generate)
+    
+    # Write the patched content back
+    with open(manager_file, 'w') as f:
+        f.write(content)
+    
+    print("✅ Successfully patched DecisionServerManager.py", file=sys.stderr)
+    sys.exit(0)
+    
+except Exception as e:
+    print(f"❌ Failed to patch: {e}", file=sys.stderr)
+    sys.exit(1)
+EOFPATCH
+
+# Apply the patch
+RUN python /tmp/fix_server.py
 
 EXPOSE 8080
 
-# Use the wrapper instead of calling decision-mcp-server directly
-CMD ["python", "/app/safe_server.py", \
+CMD ["decision-mcp-server", \
      "--transport", "sse", \
      "--mount-path", "/sse", \
      "--host", "0.0.0.0", \
