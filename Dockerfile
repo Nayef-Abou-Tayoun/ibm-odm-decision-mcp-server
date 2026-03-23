@@ -17,12 +17,7 @@ EXPOSE 8081
 # Run the MCP server using uvx
 CMD ["uvx", "--python", "3.13", "--from", "git+https://github.com/DecisionsDev/ibm-odm-decision-mcp-server.git", \
      "ibm-odm-decision-mcp-server", \
-     "--url", "https://dev-ds-console.odm.robobob.ca/res", \
-     "--runtime-url", "https://dev-ds-runtime.odm.robobob.ca/DecisionService", \
      "--host", "0.0.0.0", \
      "--port", "8081", \
      "--mount-path", "/", \
-     "--transport", "sse", \
-     "--username", "odmAdmin"]
-     
-     # "--password", "odmAdmin"]
+     "--transport", "sse"]
