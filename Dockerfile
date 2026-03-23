@@ -23,5 +23,6 @@ CMD ["uvx", "--python", "3.13", "--from", "git+https://github.com/DecisionsDev/i
      "--port", "8081", \
      "--mount-path", "/", \
      "--transport", "sse", \
-     "--username", "odmAdmin", \
-     "--password", "odmAdmin"]
+     "--username", "odmAdmin"]
+     
+     # "--password", "odmAdmin"]
