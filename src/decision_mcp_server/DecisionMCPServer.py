@@ -89,16 +89,36 @@ class DecisionMCPServer:
         self.logger.info("Listing ODM tools")
         # Ensure manager is initialized before using it
         if self.manager is None:
-            self.manager = DecisionServerManager(console_credentials=self.console_credentials, 
+            self.manager = DecisionServerManager(console_credentials=self.console_credentials,
                                                  runtime_credentials=self.runtime_credentials)
             
         rulesets = self.manager.fetch_rulesets()
         extractedTools = self.manager.generate_tools_format(rulesets)
         tools = []
-        for decisionService in extractedTools:   
+        seen_names = {}  # Track tool names to detect duplicates
+        
+        for decisionService in extractedTools:
+            tool_name = decisionService.tool_name
+            
+            # Check for duplicate tool names
+            if tool_name in seen_names:
+                # Add suffix to make it unique
+                original_name = tool_name
+                counter = 2
+                while tool_name in seen_names:
+                    tool_name = f"{original_name}_{counter}"
+                    counter += 1
+                
+                self.logger.warning(f"Duplicate tool name detected: '{original_name}' renamed to '{tool_name}'")
+                # Update the tool name in the decision service
+                decisionService.tool_name = tool_name
+                decisionService.tool_description.name = tool_name
+            
+            seen_names[tool_name] = True
             tool_info = decisionService.tool_description
             tools.append(tool_info)
-            self.repository[decisionService.tool_name] = decisionService
+            self.repository[tool_name] = decisionService
+        
         return tools
 
     async def call_tool(self, name: str, arguments: dict | None) -> list[types.TextContent | types.ImageContent | types.EmbeddedResource]:
